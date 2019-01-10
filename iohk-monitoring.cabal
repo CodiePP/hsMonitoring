@@ -14,6 +14,10 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
+  if os(Linux)
+     hs-source-dirs:   src-unix/
+  else
+     hs-source-dirs:   src-win32/
   exposed-modules:
                        Cardano.BM.Aggregated
                        Cardano.BM.BaseTrace
@@ -24,8 +28,6 @@ library
 
                        Cardano.BM.Counters
                        Cardano.BM.Counters.Common
-                       Cardano.BM.Counters.Dummy
-                       Cardano.BM.Counters.Linux
 
                        Cardano.BM.Data.Backend
                        Cardano.BM.Data.Configuration
@@ -48,6 +50,10 @@ library
 
                        Cardano.BM.Setup
                        Cardano.BM.Trace
+  if os(Linux)
+     exposed-modules:  Cardano.BM.Counters.Linux
+  else
+     exposed-modules:  Cardano.BM.Counters.Dummy
   other-modules:
   default-language:    Haskell2010
   default-extensions:  OverloadedStrings
@@ -76,9 +82,12 @@ library
                        time,
                        time-units,
                        transformers,
-                       unix,
                        unordered-containers,
                        yaml
+  if os(windows)
+     build-depends:    Win32
+  else
+     build-depends:    unix
 
   ghc-options:         -Wall
                        -fno-ignore-asserts
