@@ -41,8 +41,8 @@ import           System.IO (BufferMode (LineBuffering), Handle,
 
 #ifdef POSIX
 import           System.Directory (createFileLink)
-import           System.FilePath (takeFileName)
 #endif
+import           System.FilePath (takeFileName)
 
 import           Cardano.BM.Data.Rotation (RotationParameters (..))
 
@@ -112,7 +112,7 @@ listLogFiles file = do
     return $ NE.nonEmpty $ map (directoryPath </> ) $ sort $ filter fpredicate files
   where
     tslen = 14  -- length of a timestamp
-    filename = takeFileName  file
+    filename = takeFileName file
     fplen = length filename
     fpredicate path = take fplen path == filename
                       && take 1 (drop fplen path) == "-"
