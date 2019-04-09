@@ -43,7 +43,7 @@ let
   compiler = (stack-pkgs.overlay haskell.hackage).compiler.nix-name;
   pkgSet = haskell.mkStackPkgSet {
     inherit stack-pkgs;
-    pkg-def-overlays = [
+    pkg-def-extras = [
       iohk-overlay.${compiler}
     ];
     modules = [
