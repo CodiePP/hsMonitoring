@@ -330,6 +330,11 @@ The function |appendName| will look up the |SubTrace| for the context's name.
 findSubTrace :: Configuration -> Text -> IO (Maybe SubTrace)
 findSubTrace configuration name = do
     cg <- readMVar $ getCG configuration
+    putStrLn "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    print name
+    putStrLn "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+    print $ cgMapSubtrace cg
+    putStrLn "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     return $ HM.lookup name (cgMapSubtrace cg)
 
 setSubTrace :: Configuration -> Text -> Maybe SubTrace -> IO ()
