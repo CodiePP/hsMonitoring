@@ -121,7 +121,7 @@ mainTraceConditionally config eff = Tracer $ \item@(LogObject loggername meta _)
     testSubTrace loggername lo = do
         putStrLn "------------------------------------------------------------"
         print loggername
-        subtrace <- fromMaybe Neutral <$> Config.findSubTrace config loggername
+        subtrace <- fromMaybe Neutral <$> Config.findSubTrace config "#ekgview"
         putStrLn "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
         print subtrace
         putStrLn "------------------------------------------------------------"
