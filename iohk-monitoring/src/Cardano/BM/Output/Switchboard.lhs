@@ -120,6 +120,13 @@ mainTraceConditionally config eff = Tracer $ \item@(LogObject loggername meta _)
     testSubTrace :: LoggerName -> LogObject a -> IO Bool
     testSubTrace loggername lo = do
         subtrace <- fromMaybe Neutral <$> Config.findSubTrace config loggername
+        putStrLn "------------------------------------------------------------"
+        let (LogObject aa bb _cc) = lo
+        print aa
+        print bb
+        -- print cc
+        print subtrace
+        putStrLn "------------------------------------------------------------"
         return $ testSubTrace' lo subtrace
     testSubTrace' :: LogObject a -> SubTrace -> Bool
     testSubTrace' _                                       NoTrace               = False
