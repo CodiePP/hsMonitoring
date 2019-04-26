@@ -17,6 +17,7 @@ import           Control.Concurrent.MVar (readMVar)
 import           Data.Aeson.Types (Value (..))
 import           Data.ByteString (intercalate)
 import qualified Data.HashMap.Strict as HM
+import           Data.Maybe (fromMaybe)
 import qualified Data.Vector as V
 import           Data.Yaml
 import           System.FilePath ((</>))
@@ -29,7 +30,9 @@ import           Cardano.BM.Configuration.Model (Configuration (..),
                      getDefaultBackends, getAggregatedKind, getGUIport,
                      getEKGport, empty, setDefaultScribes, setScribes, setup,
                      setDefaultAggregatedKind, setAggregatedKind, setGUIport,
-                     setEKGport, exportConfiguration)
+                     setMinSeverity, setSetupBackends, setDefaultBackends,
+                     setSubTrace, setBackends, setSetupScribes, setEKGport,
+                     findSubTrace, exportConfiguration)
 import           Cardano.BM.Configuration.Static (defaultConfigStdout)
 import qualified Cardano.BM.Data.Aggregated as Agg
 import           Cardano.BM.Data.AggregatedKind
@@ -38,8 +41,13 @@ import           Cardano.BM.Data.MonitoringEval
 import           Cardano.BM.Data.Output
 import           Cardano.BM.Data.Observable (ObservableInstance (..))
 import           Cardano.BM.Data.Severity
-import           Cardano.BM.Data.SubTrace (SubTrace (..))
+import           Cardano.BM.Data.SubTrace (SubTrace (..),
+                     UnhideNames( Unhide ), DropName( Drop ),
+                     NameSelector( Contains, StartsWith ))
 import           Cardano.BM.Data.Rotation
+import           Cardano.BM.Trace (evalFilters)
+import           Cardano.BM.Data.LogItem
+import           Cardano.BM.Data.Tracer
 
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -71,6 +79,7 @@ unitTests = testGroup "Unit tests" [
       , testCase "not include EKG if not def" unitConfigurationCheckEKGnegative
       , testCase "check scribe caching" unitConfigurationCheckScribeCache
       , testCase "test ops on Configuration" unitConfigurationOps
+      , testCase "FilterTrace works properly" unitConfigurationFilterTrace
     ]
 
 \end{code}
@@ -489,5 +498,73 @@ unitConfigurationOps = do
 
     assertBool "Set GUI port" $
         guiPort == 1080
+
+\end{code}
+
+Test FilterTrace.
+\begin{code}
+prepare_configuration :: IO Configuration
+prepare_configuration = do
+    c <- empty
+    setMinSeverity c Debug    
+    setSetupBackends c [ KatipBK
+                          , AggregationBK
+                          , EKGViewBK
+                          , EditorBK
+                          ]
+    setDefaultBackends c [KatipBK]
+
+    setEKGport c 12788
+    setGUIport c 13787
+    
+    setSetupScribes c [ ScribeDefinition {
+                           scName = "stdout"
+                         , scKind = StdoutSK
+                         , scPrivacy = ScPublic
+                         , scRotation = Nothing
+                         }
+                      ]
+    setDefaultScribes c ["StdoutSK::stdout"]
+
+    setSubTrace c "benchmark" (Just $ ObservableTrace [GhcRtsStats,MonotonicClock])
+
+    setSubTrace c "#ekgview" (Just $ FilterTrace [ ( Drop (Contains "cardano.epoch-validation.benchmark"),
+                                                     Unhide [Contains ".monoclock.basic."]
+                                                   ),
+                                                   ( Drop (Contains "cardano.epoch-validation.benchmark"),
+                                                     Unhide [Contains "diff.RTS.cpuNs.timed."]
+                                                   ),
+                                                   ( Drop (StartsWith "#ekgview.#aggregation.cardano.epoch-validation.benchmark"),
+                                                     Unhide [Contains "diff.RTS.gcNum.timed."]
+                                                   )
+                                                 ])
+
+    setBackends c "#aggregation.cardano.epoch-validation.benchmark" (Just [EKGViewBK])
+    setBackends c "cardano.epoch-validation.benchmark" (Just [AggregationBK])
+
+    return c
+
+unitConfigurationFilterTrace :: Assertion
+unitConfigurationFilterTrace = do
+    configuration <- prepare_configuration
+    lometa <- mkLOMeta Info Public
+    let loggername = "cardano.epoch-validation.benchmark"
+        logObject = LogObject loggername lometa (LogMessage "Log Message!")
+
+    passSubTrace <- testSubTrace configuration loggername logObject
+    assertBool ("Item should be filtered")
+               (False == passSubTrace)
+  where
+    testSubTrace :: Configuration -> LoggerName -> LogObject a -> IO Bool
+    testSubTrace config loggername lo = do
+        subtrace <- fromMaybe Neutral <$> findSubTrace config loggername
+        return $ testSubTrace' lo subtrace
+
+    testSubTrace' :: LogObject a -> SubTrace -> Bool
+    testSubTrace' _ NoTrace = False
+    testSubTrace' (LogObject _ _ (ObserveOpen _)) DropOpening = False
+    testSubTrace' (LogObject loname _ (LogValue vname _)) (FilterTrace filters) = evalFilters filters (loname <> "." <> vname)
+    testSubTrace' (LogObject loname _ _) (FilterTrace filters) = evalFilters filters loname
+    testSubTrace' _ _ = True    -- fallback: all pass
 
 \end{code}
