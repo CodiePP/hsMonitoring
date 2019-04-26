@@ -122,10 +122,10 @@ mainTraceConditionally config eff = Tracer $ \item@(LogObject loggername meta _)
         subtrace <- fromMaybe Neutral <$> Config.findSubTrace config loggername
         return $ testSubTrace' lo subtrace
     testSubTrace' :: LogObject a -> SubTrace -> Bool
-    testSubTrace' _                                       NoTrace               = error "111" --False
-    testSubTrace' (LogObject _ _ (ObserveOpen _))         DropOpening           = error "222" --False
-    testSubTrace' (LogObject loname _ (LogValue vname _)) (FilterTrace filters) = error "333" --evalFilters filters (loname <> "." <> vname)
-    testSubTrace' (LogObject loname _ _)                  (FilterTrace filters) = error "444" --evalFilters filters loname
+    testSubTrace' _                                       NoTrace               = False
+    testSubTrace' (LogObject _ _ (ObserveOpen _))         DropOpening           = False
+    testSubTrace' (LogObject loname _ (LogValue vname _)) (FilterTrace filters) = evalFilters filters (loname <> "." <> vname)
+    testSubTrace' (LogObject loname _ _)                  (FilterTrace filters) = evalFilters filters loname
     testSubTrace' _                                       _                     = error "555" --True    -- fallback: all pass
 
 \end{code}
