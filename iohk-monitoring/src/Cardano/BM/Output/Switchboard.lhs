@@ -106,8 +106,8 @@ This |Tracer| will apply to every message the severity filter as defined in the 
 mainTraceConditionally :: IsEffectuator eff a => Configuration -> eff a -> Tracer IO (LogObject a)
 mainTraceConditionally config eff = Tracer $ \item@(LogObject loggername meta _) -> do
     passSevFilter <- testSeverity loggername meta
-    passSubTrace <- testSubTrace loggername item
-    if passSevFilter && passSubTrace
+    _passSubTrace <- testSubTrace loggername item
+    if passSevFilter && False -- passSubTrace
     then effectuate eff item
     else return ()
   where
