@@ -121,8 +121,9 @@ the evaluation of the filters return |True|.
 
 \begin{code}
 evalFilters :: [(DropName, UnhideNames)] -> LoggerName -> Bool
-evalFilters fs nm =
-    all (\(no, yes) -> if (dropFilter nm no) then (unhideFilter nm yes) else True) fs
+evalFilters _fs _nm = False
+    -- all (\(no, yes) -> if (dropFilter nm no) then (unhideFilter nm yes) else True) fs
+    {-
   where
     dropFilter :: LoggerName -> DropName -> Bool
     dropFilter name (Drop sel) = {-not-} (matchName name sel)
@@ -134,6 +135,7 @@ evalFilters fs nm =
     matchName name (StartsWith prefix) = T.isPrefixOf prefix name
     matchName name (EndsWith postfix) = T.isSuffixOf postfix name
     matchName name (Contains name') = T.isInfixOf name' name
+    i-}
 \end{code}
 
 \subsubsection{Concrete Trace on stdout}\label{code:stdoutTrace}\index{stdoutTrace}
