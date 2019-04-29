@@ -222,6 +222,9 @@ spawnDispatcher config evqueue sbtrace ekgtrace = do
         case maybeItem of
             Just obj@(LogObject logname meta content) -> do
                 p <- testSubTrace config ("#ekgview." <> logname) obj
+                putStrLn "testSubTrace ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                print p
+                putStrLn "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                 if p
                 then do
                   trace <- Trace.appendName logname ekgtrace
