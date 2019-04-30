@@ -223,6 +223,7 @@ spawnDispatcher config evqueue sbtrace ekgtrace = do
             Just obj@(LogObject logname meta content) -> do
                 p <- testSubTrace config ("#ekgview." <> logname) obj
                 putStrLn "testSubTrace ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                TIO.putStrLn logname
                 print p
                 putStrLn "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                 if p
@@ -231,7 +232,10 @@ spawnDispatcher config evqueue sbtrace ekgtrace = do
                   Trace.traceNamedObject trace (meta, content)
                   -- increase the counter for the type of message
                   modifyMVar_ counters $ \cnt -> return $ updateMessageCounters cnt obj
-                else pure ()
+                else do
+                  putStrLn "Ignored!"
+                  putStrLn "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                  pure ()
                 qProc counters
             Nothing -> return ()  -- stop here
 
