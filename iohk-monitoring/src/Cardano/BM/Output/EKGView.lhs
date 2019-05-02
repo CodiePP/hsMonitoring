@@ -88,21 +88,20 @@ ekgTrace ekg _c = do
                 case HM.lookup name labels of
                     Nothing -> do
                         ekghdl <- getLabel name server
-                        Label.set ekghdl label
+                        Label.set ekghdl (label <> "DUMMY")
                         if ".monoclock.basic" `isInfixOf` name
                             then do
-                                let name' = name <> "FFFAKE"
                                 TIO.putStrLn $ "name: " <> name
-                                TIO.putStrLn $ "label: " <> name
-                                return $ Just $ ekg_i { evLabels = HM.insert name' ekghdl labels}
+                                TIO.putStrLn $ "label: " <> label
+                                return $ Just $ ekg_i { evLabels = HM.insert name ekghdl labels}
                             else
                                 return $ Just $ ekg_i { evLabels = HM.insert name ekghdl labels}
                     Just ekghdl -> do
-                        Label.set ekghdl label
+                        Label.set ekghdl (label <> "NOPE")
                         if ".monoclock.basic" `isInfixOf` name
                             then do
                                 putStrLn "wwwwwwwwwwwwwwwwwwwwwwwwww222"
-                                TIO.putStrLn $ "label: " <> name
+                                TIO.putStrLn $ "label: " <> label
                                 putStrLn "wwwwwwwwwwwwwwwwwwwwwwwwww222 -----"
                             else return ()
                         return Nothing
