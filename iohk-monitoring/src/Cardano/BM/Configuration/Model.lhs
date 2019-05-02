@@ -335,10 +335,14 @@ findSubTrace configuration name =
 setSubTrace :: Configuration -> Text -> Maybe SubTrace -> IO ()
 setSubTrace configuration name trafo =
     modifyMVar_ (getCG configuration) $ \cg -> do
-        putStrLn "setSubTrace zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
-        TIO.putStrLn name
-        print trafo
-        putStrLn "setSubTrace ------------------------------"
+        if ".monoclock.basic" `T.isInfixOf` name
+            then do
+                putStrLn "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"
+                TIO.putStrLn name
+                print trafo
+                putStrLn "--- qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq ---"
+            else return ()
+
         return cg { cgMapSubtrace = HM.alter (\_ -> trafo) name (cgMapSubtrace cg) }
 
 \end{code}

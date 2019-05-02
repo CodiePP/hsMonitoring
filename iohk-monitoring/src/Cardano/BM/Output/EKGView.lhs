@@ -24,7 +24,7 @@ import           Control.Concurrent.STM (atomically)
 import qualified Control.Concurrent.STM.TBQueue as TBQ
 import           Control.Monad.IO.Class (liftIO)
 import qualified Data.HashMap.Strict as HM
-import           Data.Text (Text, pack, stripPrefix)
+import           Data.Text (Text, pack, stripPrefix, isInfixOf)
 import qualified Data.Text.IO as TIO
 import           Data.Time (getCurrentTime)
 import           Data.Version (showVersion)
@@ -222,20 +222,21 @@ spawnDispatcher config evqueue sbtrace ekgtrace = do
         case maybeItem of
             Just obj@(LogObject logname meta content) -> do
                 p <- testSubTrace config ("#ekgview." <> logname) obj
-                putStrLn "testSubTrace ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                TIO.putStrLn logname
-                print p
-                putStrLn "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                if ".monoclock.basic" `isInfixOf` logname
+                then do
+                    putStrLn "testSubTrace ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                    TIO.putStrLn logname
+                    print p
+                    putStrLn "testSubTrace --- ---"
+                else return ()
+
                 if p
                 then do
                   trace <- Trace.appendName logname ekgtrace
                   Trace.traceNamedObject trace (meta, content)
                   -- increase the counter for the type of message
                   modifyMVar_ counters $ \cnt -> return $ updateMessageCounters cnt obj
-                else do
-                  putStrLn "Ignored!"
-                  putStrLn "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                  pure ()
+                else pure ()
                 qProc counters
             Nothing -> return ()  -- stop here
 
