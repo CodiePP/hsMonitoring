@@ -28,7 +28,6 @@ import           Data.Text (Text, pack, stripPrefix, isInfixOf)
 import qualified Data.Text.IO as TIO
 import           Data.Time (getCurrentTime)
 import           Data.Version (showVersion)
-import           Data.Maybe (isJust)
 
 import           System.IO (stderr)
 import qualified System.Metrics.Label as Label
@@ -254,19 +253,30 @@ spawnDispatcher ekgview config evqueue sbtrace ekgtrace = do
             putStrLn "rrrrrrrrrremove"
             TIO.putStrLn lname
             let currentLabels = evLabels ekg
-                rres = HM.lookup lname currentLabels
-                Just lname' = stripPrefix "#aggregation." lname 
+                Just lname' = stripPrefix "#aggregation." lname
+                ln1 = lname' <> ".mean"
+                ln2 = lname' <> ".min"
+                ln3 = lname' <> ".max"
+                ln4 = lname' <> ".count"
+                ln5 = lname' <> ".stdev"
+            
+            let r5 = HM.delete ln5 . HM.delete ln4 . HM.delete ln3 . HM.delete ln2 . HM.delete ln1 $ currentLabels 
+
+            return $ ekg { evLabels = r5 }
+
+            {-
                 rres' = HM.lookup lname' currentLabels
                 updatedLabels = HM.alter (\_ -> Nothing) lname' currentLabels
                 allKeys = HM.keys currentLabels
             mapM_ TIO.putStrLn $ take 20 allKeys
             putStrLn "==================="
-            print lname'
+            TIO.putStrLn lname'
             print $ isJust rres
             print $ isJust rres'
             print $ HM.size currentLabels
             print $ HM.size updatedLabels
             return $ ekg { evLabels = updatedLabels }
+            -}
 \end{code}
 
 \subsubsection{Interactive testing |EKGView|}
