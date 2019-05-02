@@ -245,6 +245,10 @@ spawnDispatcher ekgview config evqueue sbtrace ekgtrace = do
                     -- testSubTrace contains filters, so if it returned False -
                     -- it means that current logname should be hidden from EKGView.
                     remove' logname
+                    ekg' <- readMVar (getEV ekgview)
+                    putStrLn "dddddddddddddddddddddddddddddddddddddddddddddddddd"
+                    print $ HM.size $ evLabels ekg'
+                    putStrLn "99999999999999999999999999999999999999999999999999"
                     pure ()
                 qProc counters
             Nothing -> return ()  -- stop here
