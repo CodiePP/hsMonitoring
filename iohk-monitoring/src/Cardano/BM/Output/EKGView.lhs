@@ -256,10 +256,12 @@ spawnDispatcher ekgview config evqueue sbtrace ekgtrace = do
             let currentLabels = evLabels ekg
                 rres = HM.lookup lname currentLabels
                 Just lname' = stripPrefix "#aggregation." lname 
-                rres' = HM.lookup lname currentLabels
+                rres' = HM.lookup lname' currentLabels
                 updatedLabels = HM.alter (\_ -> Nothing) lname' currentLabels
                 allKeys = HM.keys currentLabels
             mapM_ TIO.putStrLn $ take 20 allKeys
+            putStrLn "==================="
+            print lname'
             print $ isJust rres
             print $ isJust rres'
             print $ HM.size currentLabels
