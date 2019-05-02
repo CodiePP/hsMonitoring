@@ -250,8 +250,12 @@ spawnDispatcher ekgview config evqueue sbtrace ekgtrace = do
             Nothing -> return ()  -- stop here
     remove' lname = do
         modifyMVar_ (getEV ekgview) $ \ekg -> do
+            putStrLn "rrrrrrrrrremove"
+            TIO.putStrLn lname
             let currentLabels = evLabels ekg
                 updatedLabels = HM.alter (\_ -> Nothing) lname currentLabels
+            print $ HM.size currentLabels
+            print $ HM.size updatedLabels
             return $ ekg { evLabels = updatedLabels }
 \end{code}
 
