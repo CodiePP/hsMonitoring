@@ -261,6 +261,8 @@ spawnDispatcher ekgview config evqueue sbtrace ekgtrace = do
                 ln5 = lname' <> ".stdev"
             
             let r5 = HM.delete ln5 . HM.delete ln4 . HM.delete ln3 . HM.delete ln2 . HM.delete ln1 $ currentLabels 
+            print $ HM.size r5
+            putStrLn "end of removing"
 
             return $ ekg { evLabels = r5 }
 
