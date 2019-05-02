@@ -248,14 +248,11 @@ spawnDispatcher ekgview config evqueue sbtrace ekgtrace = do
                     pure ()
                 qProc counters
             Nothing -> return ()  -- stop here
-    remove' _lname = do
-        ekg <- readMVar (getEV ekgview)
-        putStrLn "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-        print $ HM.size $ evLabels ekg
-        putStrLn "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
-        -- modifyMVar_ (getEV ekgview) $ \_ekgup -> do
-        --    error ""
-
+    remove' lname = do
+        modifyMVar_ (getEV ekgview) $ \ekg -> do
+            let currentLabels = evLabels ekg
+                updatedLabels = HM.alter (\_ -> Nothing) lname currentLabels
+            return $ ekg { evLabels = updatedLabels }
 \end{code}
 
 \subsubsection{Interactive testing |EKGView|}
