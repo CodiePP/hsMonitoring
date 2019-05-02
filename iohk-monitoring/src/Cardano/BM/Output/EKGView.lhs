@@ -87,18 +87,24 @@ ekgTrace ekg _c = do
             setlabel name label ekg_i@(EKGViewInternal _ labels server) =
                 case HM.lookup name labels of
                     Nothing -> do
-                        putStrLn "wwwwwwwwwwwwwwwwwwwwwwwwww111"
                         ekghdl <- getLabel name server
                         Label.set ekghdl label
-                        TIO.putStrLn $ "name: " <> name
-                        TIO.putStrLn $ "label: " <> name
-                        putStrLn "wwwwwwwwwwwwwwwwwwwwwwwwww111 -----"
+                        if ".monoclock.basic" `isInfixOf` name
+                            then do
+                                putStrLn "wwwwwwwwwwwwwwwwwwwwwwwwww111"
+                                TIO.putStrLn $ "name: " <> name
+                                TIO.putStrLn $ "label: " <> name
+                                putStrLn "wwwwwwwwwwwwwwwwwwwwwwwwww111 -----"
+                            else return ()
                         return $ Just $ ekg_i { evLabels = HM.insert name ekghdl labels}
                     Just ekghdl -> do
-                        putStrLn "wwwwwwwwwwwwwwwwwwwwwwwwww222"
                         Label.set ekghdl label
-                        TIO.putStrLn $ "label: " <> name
-                        putStrLn "wwwwwwwwwwwwwwwwwwwwwwwwww222 -----"
+                        if ".monoclock.basic" `isInfixOf` name
+                            then do
+                                putStrLn "wwwwwwwwwwwwwwwwwwwwwwwwww222"
+                                TIO.putStrLn $ "label: " <> name
+                                putStrLn "wwwwwwwwwwwwwwwwwwwwwwwwww222 -----"
+                            else return ()
                         return Nothing
 
             update :: ToObject a => LogObject a -> EKGViewInternal a -> IO (Maybe (EKGViewInternal a))
