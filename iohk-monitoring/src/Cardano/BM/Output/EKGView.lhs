@@ -28,6 +28,7 @@ import           Data.Text (Text, pack, stripPrefix, isInfixOf)
 import qualified Data.Text.IO as TIO
 import           Data.Time (getCurrentTime)
 import           Data.Version (showVersion)
+import           Data.Maybe (isJust)
 
 import           System.IO (stderr)
 import qualified System.Metrics.Label as Label
@@ -253,7 +254,12 @@ spawnDispatcher ekgview config evqueue sbtrace ekgtrace = do
             putStrLn "rrrrrrrrrremove"
             TIO.putStrLn lname
             let currentLabels = evLabels ekg
-                updatedLabels = HM.alter (\_ -> Nothing) lname currentLabels
+                rres = HM.lookup lname currentLabels
+                Just lname' = stripPrefix "#aggregation." lname 
+                rres' = HM.lookup lname currentLabels
+                updatedLabels = HM.alter (\_ -> Nothing) lname' currentLabels
+            print $ isJust rres
+            print $ isJust rres'
             print $ HM.size currentLabels
             print $ HM.size updatedLabels
             return $ ekg { evLabels = updatedLabels }
