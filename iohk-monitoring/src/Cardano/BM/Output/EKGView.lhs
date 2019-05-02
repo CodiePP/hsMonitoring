@@ -191,7 +191,7 @@ instance ToObject a => IsBackend EKGView a where
         Label.set ekghdl $ pack (showVersion version)
         ekgtrace <- ekgTrace ekgview config
         queue <- atomically $ TBQ.newTBQueue 25120
-        dispatcher <- spawnDispatcher config queue sbtrace ekgtrace
+        dispatcher <- spawnDispatcher ekgview config queue sbtrace ekgtrace
         -- link the given Async to the current thread, such that if the Async
         -- raises an exception, that exception will be re-thrown in the current
         -- thread, wrapped in ExceptionInLinkedThread.
@@ -211,12 +211,13 @@ instance ToObject a => IsBackend EKGView a where
 
 \subsubsection{Asynchronously reading log items from the queue and their processing}
 \begin{code}
-spawnDispatcher :: Configuration
+spawnDispatcher :: EKGView a
+                -> Configuration
                 -> TBQ.TBQueue (Maybe (LogObject a))
                 -> Trace.Trace IO a
                 -> Trace.Trace IO a
                 -> IO (Async.Async ())
-spawnDispatcher config evqueue sbtrace ekgtrace = do
+spawnDispatcher ekgview config evqueue sbtrace ekgtrace = do
     now <- getCurrentTime
     let messageCounters = resetCounters now
     countersMVar <- newMVar messageCounters
@@ -234,23 +235,26 @@ spawnDispatcher config evqueue sbtrace ekgtrace = do
         case maybeItem of
             Just obj@(LogObject logname meta content) -> do
                 p <- testSubTrace config ("#ekgview." <> logname) obj
-                if ".monoclock.basic" `isInfixOf` logname
-                then do
-                    putStrLn "testSubTrace ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                    TIO.putStrLn logname
-                    print p
-                    putStrLn "testSubTrace --- ---"
-                else return ()
-
                 if p
                 then do
                   trace <- Trace.appendName logname ekgtrace
                   Trace.traceNamedObject trace (meta, content)
                   -- increase the counter for the type of message
                   modifyMVar_ counters $ \cnt -> return $ updateMessageCounters cnt obj
-                else pure ()
+                else do
+                    -- testSubTrace contains filters, so if it returned False -
+                    -- it means that current logname should be hidden from EKGView.
+                    remove' logname
+                    pure ()
                 qProc counters
             Nothing -> return ()  -- stop here
+    remove' _lname = do
+        ekg <- readMVar (getEV ekgview)
+        putStrLn "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        print $ HM.size $ evLabels ekg
+        putStrLn "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
+        -- modifyMVar_ (getEV ekgview) $ \_ekgup -> do
+        --    error ""
 
 \end{code}
 
