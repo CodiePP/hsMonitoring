@@ -91,12 +91,12 @@ ekgTrace ekg _c = do
                         Label.set ekghdl label
                         if ".monoclock.basic" `isInfixOf` name
                             then do
-                                putStrLn "wwwwwwwwwwwwwwwwwwwwwwwwww111"
+                                let name' = name <> "FFFAKE"
                                 TIO.putStrLn $ "name: " <> name
                                 TIO.putStrLn $ "label: " <> name
-                                putStrLn "wwwwwwwwwwwwwwwwwwwwwwwwww111 -----"
-                            else return ()
-                        return $ Just $ ekg_i { evLabels = HM.insert name ekghdl labels}
+                                return $ Just $ ekg_i { evLabels = HM.insert name' ekghdl labels}
+                            else
+                                return $ Just $ ekg_i { evLabels = HM.insert name ekghdl labels}
                     Just ekghdl -> do
                         Label.set ekghdl label
                         if ".monoclock.basic" `isInfixOf` name

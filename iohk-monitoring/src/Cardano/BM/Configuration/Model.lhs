@@ -54,7 +54,6 @@ import qualified Data.HashMap.Strict as HM
 import           Data.Maybe (catMaybes)
 import qualified Data.Text as T
 import           Data.Text (Text, pack, unpack)
-import qualified Data.Text.IO as TIO
 import qualified Data.Vector as Vector
 import           Data.Yaml as Yaml
 
@@ -334,11 +333,7 @@ findSubTrace configuration name =
 
 setSubTrace :: Configuration -> Text -> Maybe SubTrace -> IO ()
 setSubTrace configuration name trafo =
-    modifyMVar_ (getCG configuration) $ \cg -> do
-        putStrLn "setSubTrace zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
-        TIO.putStrLn name
-        print trafo
-        putStrLn "setSubTrace ------------------------------"
+    modifyMVar_ (getCG configuration) $ \cg ->
         return cg { cgMapSubtrace = HM.alter (\_ -> trafo) name (cgMapSubtrace cg) }
 
 \end{code}
