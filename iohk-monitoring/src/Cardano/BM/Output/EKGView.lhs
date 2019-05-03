@@ -250,9 +250,9 @@ spawnDispatcher ekgview config evqueue sbtrace ekgtrace = do
                    $ evLabels ekg 
             print $ HM.size updatedLabels
             putStrLn "end of removing"
-            let ss = evServer ekg
-            ekghdl <- getLabel (lname' <> ".stdev") ss
-            Label.set ekghdl "OOOOOOOOOOOOOOO"
+            --let ss = evServer ekg
+            --ekghdl <- getLabel (lname' <> ".stdev") ss
+            --Label.set ekghdl "OOOOOOOOOOOOOOO"
             return $ ekg { evLabels = updatedLabels }
 \end{code}
 
