@@ -24,7 +24,7 @@ import           Control.Concurrent.STM (atomically)
 import qualified Control.Concurrent.STM.TBQueue as TBQ
 import           Control.Monad.IO.Class (liftIO)
 import qualified Data.HashMap.Strict as HM
-import           Data.Text (Text, pack, stripPrefix, isInfixOf)
+import           Data.Text (Text, pack, stripPrefix)
 import qualified Data.Text.IO as TIO
 import           Data.Time (getCurrentTime)
 import           Data.Version (showVersion)
@@ -88,22 +88,10 @@ ekgTrace ekg _c = do
                 case HM.lookup name labels of
                     Nothing -> do
                         ekghdl <- getLabel name server
-                        Label.set ekghdl (label <> "DUMMY")
-                        if ".monoclock.basic" `isInfixOf` name
-                            then do
-                                TIO.putStrLn $ "name: " <> name
-                                TIO.putStrLn $ "label: " <> label
-                                return $ Just $ ekg_i { evLabels = HM.insert name ekghdl labels}
-                            else
-                                return $ Just $ ekg_i { evLabels = HM.insert name ekghdl labels}
+                        Label.set ekghdl label
+                        return $ Just $ ekg_i { evLabels = HM.insert name ekghdl labels}
                     Just ekghdl -> do
-                        Label.set ekghdl (label <> "NOPE")
-                        if ".monoclock.basic" `isInfixOf` name
-                            then do
-                                putStrLn "wwwwwwwwwwwwwwwwwwwwwwwwww222"
-                                TIO.putStrLn $ "label: " <> label
-                                putStrLn "wwwwwwwwwwwwwwwwwwwwwwwwww222 -----"
-                            else return ()
+                        Label.set ekghdl label
                         return Nothing
 
             update :: ToObject a => LogObject a -> EKGViewInternal a -> IO (Maybe (EKGViewInternal a))
@@ -242,47 +230,30 @@ spawnDispatcher ekgview config evqueue sbtrace ekgtrace = do
                   -- increase the counter for the type of message
                   modifyMVar_ counters $ \cnt -> return $ updateMessageCounters cnt obj
                 else do
-                    -- testSubTrace contains filters, so if it returned False -
-                    -- it means that current logname should be hidden from EKGView.
-                    remove' logname
-                    ekg' <- readMVar (getEV ekgview)
-                    putStrLn "dddddddddddddddddddddddddddddddddddddddddddddddddd"
-                    print $ HM.size $ evLabels ekg'
-                    putStrLn "99999999999999999999999999999999999999999999999999"
-                    pure ()
+                  -- testSubTrace contains filters, so if it returned False -
+                  -- it means that current logname should be hidden from EKGView.
+                  remove' logname
+                  pure ()
                 qProc counters
             Nothing -> return ()  -- stop here
     remove' lname = do
         modifyMVar_ (getEV ekgview) $ \ekg -> do
             putStrLn "rrrrrrrrrremove"
             TIO.putStrLn lname
-            let currentLabels = evLabels ekg
-                Just lname' = stripPrefix "#aggregation." lname
-                ln1 = lname' <> ".mean"
-                ln2 = lname' <> ".min"
-                ln3 = lname' <> ".max"
-                ln4 = lname' <> ".count"
-                ln5 = lname' <> ".stdev"
-            
-            let r5 = HM.delete ln5 . HM.delete ln4 . HM.delete ln3 . HM.delete ln2 . HM.delete ln1 $ currentLabels 
-            print $ HM.size r5
-            putStrLn "end of removing"
-
-            return $ ekg { evLabels = r5 }
-
-            {-
-                rres' = HM.lookup lname' currentLabels
-                updatedLabels = HM.alter (\_ -> Nothing) lname' currentLabels
-                allKeys = HM.keys currentLabels
-            mapM_ TIO.putStrLn $ take 20 allKeys
-            putStrLn "==================="
-            TIO.putStrLn lname'
-            print $ isJust rres
-            print $ isJust rres'
-            print $ HM.size currentLabels
+            let Just lname' = stripPrefix "#aggregation." lname
+                updatedLabels
+                   = HM.delete (lname' <> ".stdev")
+                   . HM.delete (lname' <> ".count")
+                   . HM.delete (lname' <> ".max")
+                   . HM.delete (lname' <> ".min")
+                   . HM.delete (lname' <> ".mean")
+                   $ evLabels ekg 
             print $ HM.size updatedLabels
+            putStrLn "end of removing"
+            let ss = evServer ekg
+            ekghdl <- getLabel (lname' <> ".stdev") ss
+            Label.set ekghdl "OOOOOOOOOOOOOOO"
             return $ ekg { evLabels = updatedLabels }
-            -}
 \end{code}
 
 \subsubsection{Interactive testing |EKGView|}
