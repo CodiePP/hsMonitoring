@@ -38,6 +38,7 @@ module Cardano.BM.Configuration.Model
     , getOption
     , findSubTrace
     , setSubTrace
+    , setMonitors
     , getMonitors
     , getEKGport
     , setEKGport
@@ -358,6 +359,11 @@ Just (
 \end{spec}
 
 \begin{code}
+setMonitors :: Configuration -> HM.HashMap LoggerName (MEvExpr, [MEvAction]) -> IO ()
+setMonitors configuration monitors =
+    modifyMVar_ (getCG configuration) $ \cg ->
+        return cg { cgMonitors = monitors }
+
 getMonitors :: Configuration -> IO (HM.HashMap LoggerName (MEvExpr, [MEvAction]))
 getMonitors configuration = do
     cg <- readMVar $ getCG configuration

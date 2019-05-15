@@ -64,7 +64,7 @@ data MonitorState = MonitorState {
       _expression  :: MEvExpr
     , _actions     :: [MEvAction]
     , _environment :: Environment
-    }
+    } deriving Show
 type MonitorMap = HM.HashMap LoggerName MonitorState
 
 \end{code}
@@ -74,6 +74,7 @@ Function |effectuate| is called to pass in a |LogObject| for monitoring.
 \begin{code}
 instance IsEffectuator Monitor a where
     effectuate monitor item = do
+        putStrLn "Monitor___effectuate.."
         mon <- readMVar (getMon monitor)
         nocapacity <- atomically $ TBQ.isFullTBQueue (monQueue mon)
         if nocapacity
@@ -94,6 +95,7 @@ instance IsBackend Monitor a where
     realize _ = error "Monitoring cannot be instantiated by 'realize'"
 
     realizefrom config sbtrace _ = do
+        putStrLn "Monitor___realizefrom.."
         monref <- newEmptyMVar
         let monitor = Monitor monref
         queue <- atomically $ TBQ.newTBQueue 512
@@ -119,20 +121,26 @@ spawnDispatcher :: TBQ.TBQueue (Maybe (LogObject a))
                 -> Trace.Trace IO a
                 -> IO (Async.Async ())
 spawnDispatcher mqueue config sbtrace = do
+    putStrLn "Monitor__spawnDispatcher..0"
     now <- getCurrentTime
+    putStrLn "Monitor__spawnDispatcher..1"
     let messageCounters = resetCounters now
+    putStrLn "Monitor__spawnDispatcher..2"
     countersMVar <- newMVar messageCounters
+    putStrLn "Monitor__spawnDispatcher..3"
     _timer <- Async.async $ sendAndResetAfter
                                 sbtrace
                                 "#messagecounters.monitoring"
                                 countersMVar
                                 60000   -- 60000 ms = 1 min
                                 Warning -- Debug
-
+    putStrLn "Monitor__spawnDispatcher..4"
     Async.async (initMap >>= qProc countersMVar)
   where
     qProc counters state = do
+        putStrLn "Monitor__qProc..0"
         maybeItem <- atomically $ TBQ.readTBQueue mqueue
+        putStrLn "Monitor__qProc..1"
         case maybeItem of
             Just (logvalue@(LogObject _ _ _)) -> do
                 state' <- evalMonitoringAction state logvalue
@@ -141,27 +149,152 @@ spawnDispatcher mqueue config sbtrace = do
                 qProc counters state'
             Nothing -> return ()  -- stop here
     initMap = do
+        putStrLn "Monitor__initMap..0"
         ls <- getMonitors config
-        return $ HM.fromList $ map (\(n, (e,as)) -> (n, MonitorState e as HM.empty)) $ HM.toList ls
+        let res = HM.fromList $ map (\(n, (e,as)) -> (n, MonitorState e as HM.empty)) $ HM.toList ls
+        print res
+        putStrLn "Monitor__initMap..1"
+        return res
 \end{code}
 
 \subsubsection{Evaluation of monitoring action}\label{code:evalMonitoringAction}
 Inspect the log message and match it against configured thresholds. If positive,
 then run the action on the current state and return the updated state.
 \begin{code}
+
+{-
+evalMonitoringAction begin..
+MonitorMap: fromList
+                [
+                    (
+                        "complex.monitoring",
+                        MonitorState {
+                            _expression = (mean >= (59)),
+                            _actions = ["AlterMinSeverity \"complex.monitoring\" Debug"],
+                            _environment = fromList []
+                        }
+                    )
+                ]
+LogName: complex.monitoring
+YEP, starting...
+expr: (mean >= (59))
+acts: ["AlterMinSeverity \"complex.monitoring\" Debug"]
+env0: fromList []
+env': fromList [("monitMe",78.47320342980716),("timestamp",63357312390289 ns)]
+Nope, didn't evaluate, exit...
+
+
+
+
+
+Compare "mean" (GE, 59),
+
+
+
+evaluate :: Environment -> MEvExpr -> Bool
+evaluate  fromList [
+             ("monitMe",78.47320342980716),
+             ("timestamp",63357312390289 ns)
+          ]
+         expr =
+    case expr of
+        -- Compare "mean" (GE, 59),
+           Compare vn     (op, m2) -> case (HM.lookup vn ev) of
+                                          Nothing -> False
+                                          Just m1 -> (fromOperator op) m1 m2
+
+
+evalMonitoringAction begin..
+MonitorMap: fromList [("complex.monitoring",MonitorState {_expression = (monitMe >= (59)), _actions = ["AlterMinSeverity \"complex.monitoring\" Debug"], _environment = fromList []})]
+LogName: complex.monitoring
+YEP, starting...
+expr: (monitMe >= (59))
+acts: ["AlterMinSeverity \"complex.monitoring\" Debug"]
+env0: fromList []
+env': fromList [("monitMe",66.53025739757501),("timestamp",73715294875565 ns)]
+OK, it's evaluated, continue...
+now: 310890038392221
+env'': fromList [
+            ("lastalert", 310890038392221 ns),
+            ("monitMe",   66.53025739757501),
+            ("timestamp", 73715294875565 ns)
+       ]
+alert! complex.monitoring ["AlterMinSeverity \"complex.monitoring\" Debug"] fromList [("lastalert",310890038392221 ns),("monitMe",66.53025739757501),("timestamp",73715294875565 ns)]
+M
+
+
+
+
+
+
+YEP, starting...
+expr: (monitMe >= (59))
+acts: ["AlterMinSeverity \"complex.monitoring\" Debug"]
+env0: fromList []
+env': fromList [("monitMe",83.69744448948583),("timestamp",74867659005875 ns)]
+OK, it's evaluated, continue...
+now: 312042403561678
+env'': fromList [("lastalert",312042403561678 ns),("monitMe",83.69744448948583),("timestamp",74867659005875 ns)]
+alert! complex.monitoring ["AlterMinSeverity \"complex.monitoring\" Debug"] fromList [("lastalert",312042403561678 ns),("monitMe",83.69744448948583),("timestamp",74867659005875 ns)]
+
+fromList [
+    (
+        "complex.monitoring",
+        MonitorState {
+            _expression = (monitMe >= (59)),
+            _actions = ["AlterMinSeverity \"complex.monitoring\" Debug"],
+            _environment = fromList [
+                                (
+                                    "lastalert",312042403561678 ns
+                                ),
+                                (
+                                    "monitMe",83.69744448948583
+                                ),
+                                (
+                                    "timestamp",74867659005875 ns
+                                )
+                           ]
+        }
+    )
+]
+
+
+
+
+
+-}
+
 evalMonitoringAction :: MonitorMap -> LogObject a -> IO MonitorMap
-evalMonitoringAction mmap logObj@(LogObject logname _ _) =
+evalMonitoringAction mmap logObj@(LogObject logname _ _) = do
+    putStrLn "evalMonitoringAction begin.."
+    putStrLn $ "MonitorMap: " <> show mmap
+    TIO.putStrLn $ "LogName: " <> logname
     case HM.lookup logname mmap of
-        Nothing -> return mmap
+        Nothing -> do
+            putStrLn "NOPE, return the same mmap..."
+            return mmap
         Just mon@(MonitorState expr acts env0) -> do
+            putStrLn "YEP, starting..."
+            putStrLn $ "expr: " <> show expr
+            putStrLn $ "acts: " <> show acts 
+            putStrLn $ "env0: " <> show env0
             let env' = updateEnv env0 logObj
+            putStrLn $ "env': " <> show env'
             if evaluate env' expr
             then do
+                putStrLn "OK, it's evaluated, continue..."
                 now <- getMonotonicTimeNSec
+                putStrLn $ "now: " <> show now
                 let env'' = HM.insert "lastalert" (Nanoseconds now) env'
+                putStrLn $ "env'': " <> show env''
                 TIO.putStrLn $ "alert! " <> logname <> " " <> (pack $ show acts) <> " " <> (pack $ show env'')
-                return $ HM.insert logname mon{_environment=env''} mmap
-            else return mmap
+                let finaRes = HM.insert logname mon{_environment=env''} mmap
+                print finaRes
+                putStrLn "``````````````end``````````````"
+                return finaRes
+            else do
+                putStrLn "Nope, didn't evaluate, exit..."
+                return mmap
   where
     utc2ns (UTCTime days secs) =
         let yearsecs :: Rational

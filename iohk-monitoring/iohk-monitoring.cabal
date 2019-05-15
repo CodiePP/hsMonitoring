@@ -251,11 +251,14 @@ executable example-complex
   other-modules:
   build-depends:       base,
                        iohk-monitoring,
+                       aeson,
                        async,
                        bytestring,
                        mtl,
                        random,
-                       text
+                       text,
+                       unordered-containers,
+                       vector
   if os(windows)
      build-depends:    Win32
   else

@@ -26,11 +26,12 @@ import           Control.Monad (forM_)
 import           Control.Monad (forM)
 import           GHC.Conc.Sync (atomically, STM, TVar, newTVar, readTVar, writeTVar)
 #ifdef LINUX
-import qualified Data.ByteString.Char8 as BS8
-import           Network.Download (openURI)
+-- import qualified Data.ByteString.Char8 as BS8
+-- import           Network.Download (openURI)
 #endif
 #endif
 import           Data.Text (Text, pack)
+import qualified Data.HashMap.Strict as HM
 import           System.Random
 
 import           Cardano.BM.Configuration (Configuration)
@@ -39,6 +40,7 @@ import           Cardano.BM.Data.Aggregated (Measurable (..))
 import           Cardano.BM.Data.AggregatedKind
 import           Cardano.BM.Data.BackendKind
 import           Cardano.BM.Data.LogItem
+import           Cardano.BM.Data.MonitoringEval as ME
 import           Cardano.BM.Data.Output
 import           Cardano.BM.Data.Rotation
 import           Cardano.BM.Data.Severity
@@ -72,6 +74,7 @@ prepare_configuration = do
 #ifdef ENABLE_GUI
                           , EditorBK
 #endif
+                          , MonitoringBK
                           ]
     CM.setDefaultBackends c [KatipBK]
     CM.setSetupScribes c [ ScribeDefinition {
@@ -128,6 +131,10 @@ prepare_configuration = do
     CM.setSubTrace c "#messagecounters.switchboard" $ Just NoTrace
     CM.setSubTrace c "#messagecounters.katip"       $ Just NoTrace
     CM.setSubTrace c "complex.random" (Just $ TeeTrace "ewma")
+
+-- [iohk.complex.random     :Debug:ThreadId 52] [2019-05-15 10:25:13.93 UTC] rr = 81.86484550168804
+-- [iohk.complex.random.ewma:Debug:ThreadId 52] [2019-05-15 10:25:13.93 UTC] rr = 81.86484550168804
+
     CM.setSubTrace c "#ekgview"
       (Just $ FilterTrace [ (Drop (StartsWith "#ekgview.#aggregation.complex.random"),
                              Unhide [(EndsWith ".count"),
@@ -177,7 +184,7 @@ prepare_configuration = do
 #endif
 
 #ifdef ENABLE_EKG
-    CM.setSubTrace c "#messagecounters.monitoring" $ Just NoTrace
+    CM.setSubTrace c "#messagecounters.monitoring" $ (Just $ ObservableTrace [GhcRtsStats,MemoryStats])
     CM.setBackends c "#aggregation.complex.message" (Just [EKGViewBK])
     CM.setBackends c "#aggregation.complex.observeIO" (Just [EKGViewBK])
     CM.setEKGport c 12789
@@ -185,8 +192,32 @@ prepare_configuration = do
 #ifdef ENABLE_GUI
     CM.setGUIport c 13789
 #endif
-    return c
+    CM.setMonitors c $ HM.fromList [
+            (
+                "complex.monitoring",
+                (
+                    Compare "monitMe" (GE, 59),
+                    ["AlterMinSeverity \"complex.monitoring\" Debug"]
+                )
+            )--,
+            --(
+            --    "#aggregation.critproc.observable",
+            --    (
+            --        -- OR (Compare "time" (ME.GT, (Seconds 23))) (Compare "time" (ME.LT, (Seconds 17))),
+            --        Compare "mean" (GE, 42),
+            --        [ "CreateMessage \"exceeded\" \"the observable has been too long too high!\""
+            --        , "AlterGlobalMinSeverity Info"
+            --        ]
+            --    )
+            --)
+        ]
+    CM.setBackends c "complex.monitoring" (Just [KatipBK, MonitoringBK])
+    CM.setSubTrace c "complex.monitoring" (Just $ TeeTrace "Fake.ActualFake")
 
+-- [iohk.complex.monitoring:       Warning:ThreadId 63] [2019-05-15 10:04:11.08 UTC] monitMe = 27.494617615271558
+-- [iohk.complex.monitoring.testMe:Warning:ThreadId 63] [2019-05-15 10:04:11.08 UTC] monitMe = 27.494617615271558
+
+    return c
 \end{code}
 
 \subsubsection{Dump the log buffer periodically}
@@ -210,6 +241,7 @@ dumpBuffer sb trace = do
 \begin{code}
 randomThr :: Trace IO Text -> IO (Async.Async ())
 randomThr trace = do
+  putStrLn "randomThr______"
   logInfo trace "starting random generator"
   trace' <- appendName "random" trace
   proc <- Async.async (loop trace')
@@ -222,6 +254,24 @@ randomThr trace = do
         traceNamedObject tr lo
         loop tr
 
+\end{code}
+
+\subsubsection{Thread that outputs a random number to a |Trace|}
+\begin{code}
+monitoringThr :: Trace IO Text -> IO (Async.Async ())
+monitoringThr trace = do
+  putStrLn "monitoringThr______"
+  logInfo trace "starting numbers for monitoring..."
+  trace' <- appendName "monitoring" trace
+  proc <- Async.async (loop trace')
+  return proc
+  where
+    loop tr = do
+        threadDelay 500000  -- 0.5 second
+        num <- randomRIO (42-42, 42+42) :: IO Double
+        lo <- (,) <$> (mkLOMeta Warning Public) <*> pure (LogValue "monitMe" (PureD num))
+        traceNamedObject tr lo
+        loop tr
 \end{code}
 
 \subsubsection{Thread that observes an |IO| action}
@@ -273,6 +323,7 @@ order to observe the I/O statistics}
 \begin{code}
 #ifdef LINUX
 #ifdef ENABLE_OBSERVABLES
+{-
 observeDownload :: Configuration -> Trace IO Text -> IO (Async.Async ())
 observeDownload config trace = do
   proc <- Async.async (loop trace)
@@ -289,6 +340,7 @@ observeDownload config trace = do
             threadDelay 50000  -- .05 second
             pure ()
         loop tr
+-}
 #endif
 #endif
 \end{code}
@@ -335,6 +387,8 @@ main = do
        to a trace which aggregates them into a statistics (sent to EKG) -}
     procRandom <- randomThr tr
 #endif
+    -- ...
+    procMonitoring <- monitoringThr tr
 #ifdef RUN_ProcObserveIO
     -- start thread endlessly reversing lists of random length
 #ifdef ENABLE_OBSERVABLES
@@ -351,7 +405,7 @@ main = do
 #ifdef RUN_ProcObseveDownload
     -- start thread endlessly which downloads sth in order to check the I/O usage
 #ifdef ENABLE_OBSERVABLES
-    procObsvDownload <- observeDownload c tr
+    -- procObsvDownload <- observeDownload c tr
 #endif
 #endif
 #endif
@@ -367,7 +421,7 @@ main = do
 #ifdef RUN_ProcObseveDownload
     -- wait for download thread to finish, ignoring any exception
 #ifdef ENABLE_OBSERVABLES
-    _ <- Async.waitCatch procObsvDownload
+    -- _ <- Async.waitCatch procObsvDownload
 #endif
 #endif
 #endif
@@ -387,6 +441,8 @@ main = do
     -- wait for random thread to finish, ignoring any exception
     _ <- Async.waitCatch procRandom
 #endif
+    -- ...
+    _ <- Async.waitCatch procMonitoring
 #ifdef RUN_ProcBufferDump
     _ <- Async.waitCatch procDump
 #endif
