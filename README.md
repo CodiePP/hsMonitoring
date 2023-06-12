@@ -1,40 +1,23 @@
-# iohk-monitoring-framework
+# hs-monitoring
 
-[![Release version](https://img.shields.io/github/release-pre/input-output-hk/iohk-monitoring-framework.svg)](https://github.com/input-output-hk/iohk-monitoring-framework/releases)
-[![Build status](https://badge.buildkite.com/1cc7939a1fed4972c15b8f87d510e0404b0eb65d73cfd1e30b.svg?branch=master)](https://buildkite.com/input-output-hk/iohk-monitoring-framework)
-[![Coverage Status](https://coveralls.io/repos/github/input-output-hk/iohk-monitoring-framework/badge.svg?branch=master)](https://coveralls.io/github/input-output-hk/iohk-monitoring-framework?branch=master)
+This project provides logging and benchmarking for the purpose of system and process monitoring.
 
-This framework provides logging, benchmarking and monitoring.
 
-## documentation
-
-Documentation of the [source code and tests](https://github.com/input-output-hk/iohk-monitoring-framework/wiki/IOHK-Monitoring.pdf) in PDF format. Please, download the PDF file and open it in an external viewer. It contains links for easier navigation in the source code. Those links are not active in the online viewer.
-
-Slides of our presentations are available in [html](https://input-output-hk.github.io/iohk-monitoring-framework/) format.
-
-And, introductory one-pagers on logging and benchmarking are available in [pdf](https://input-output-hk.github.io/iohk-monitoring-framework/) format.
-
-## module dependencies
-
-![Overview of modules](docs/OverviewModules.png)
-
-## building and testing
+## build and test
 
 `cabal new-build all`
 
 `cabal new-test all`
 
-## examples
-Some examples are available in the directory [examples](https://github.com/input-output-hk/iohk-monitoring-framework/tree/master/iohk-monitoring/examples):
-* `simple`  -  run with `cabal new-run example-simple`
-* `complex`  -  run with `cabal new-run example-complex`
+or using _stack_:
 
-These showcase the usage of this framework in an application. The *complex* example includes `EKGView` (http://localhost:12789) and the configuration editor (http://localhost:13789).
+`stack build`
 
-![Edit runtime configuration](docs/ConfigEditor.png)
+`stack test`
 
 
-## development
+## Disclaimer
 
-* `cabal new-build all` and `cabal new-test all`
-* `ghcid -c "cabal new-repl"` watches for file changes and recompiles them immediately
+This work is based on a fork from https://github.com/input-output-hk/iohk-monitoring-framework which is Copyright 2019 by IOHK.
+
+This project might take a different approach and has other goals to meet than IOHK's. The interfaces might not be compatible with the requirements of their blockchain node.

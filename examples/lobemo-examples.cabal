@@ -3,13 +3,13 @@ name:                lobemo-examples
 version:             0.1.0.1
 synopsis:            examples of logging, benchmarking, and monitoring
 -- description:
-homepage:            https://github.com/input-output-hk/iohk-monitoring-framework
+homepage:            https://github.com/CodiePP/hsMonitoring
 -- bug-reports:
 license:             Apache-2.0
 license-file:        LICENSE
 author:              Alexander Diemand
-maintainer:          operations@iohk.io
-copyright:           2019 IOHK
+maintainer:          codieplusplus@apax.net
+copyright:           2019-23 IOHK, 2023 Alexander Diemand
 category:            Benchmarking
 build-type:          Simple
 extra-source-files:
@@ -24,7 +24,7 @@ executable example-simple
   default-language:    Haskell2010
   build-depends:       base,
                        aeson,
-                       iohk-monitoring,
+                       hs-monitoring,
                        --lobemo-backend-editor,
                        lobemo-scribe-systemd,
                        async,
@@ -45,7 +45,7 @@ executable example-counters
   default-language:    Haskell2010
   build-depends:       base,
                        aeson,
-                       iohk-monitoring,
+                       hs-monitoring,
                        async,
                        bytestring,
                        mtl
@@ -63,7 +63,7 @@ executable example-stats
   default-language:    Haskell2010
   build-depends:       base,
                        aeson,
-                       iohk-monitoring,
+                       hs-monitoring,
                        async,
                        bytestring,
                        mtl,
@@ -83,10 +83,10 @@ executable example-complex
   other-modules:
   build-depends:       aeson,
                        base,
-                       iohk-monitoring,
+                       hs-monitoring,
                        lobemo-backend-aggregation,
                        --lobemo-backend-editor,
-                       lobemo-backend-ekg,
+                       --lobemo-backend-ekg,
                        lobemo-backend-monitoring,
                        lobemo-backend-trace-forwarder,
                        lobemo-scribe-systemd,
@@ -114,7 +114,7 @@ executable example-performance
   ghc-options:         -threaded -Wall -Werror -O2 "-with-rtsopts=-T"
   other-modules:
   build-depends:       base,
-                       iohk-monitoring,
+                       hs-monitoring,
                        async,
                        criterion,
                        text,
@@ -131,8 +131,8 @@ executable example-acceptor
                        -fno-warn-unticked-promoted-constructors
 
   build-depends:       base
-                     , iog-contra-tracer
-                     , iohk-monitoring
+                     , contra-tracer
+                     , hs-monitoring
                      , lobemo-backend-trace-acceptor
 
                      , bytestring

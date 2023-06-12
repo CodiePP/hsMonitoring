@@ -26,7 +26,7 @@ main = defaultMain tests
 
 tests :: TestTree
 tests =
-  testGroup "iohk-monitoring"
+  testGroup "hs-monitoring"
   [
     Cardano.BM.Test.Aggregated.tests
   , Cardano.BM.Test.STM.tests

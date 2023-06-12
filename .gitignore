@@ -35,3 +35,4 @@ cabal.project.local~
 .dir-locals.el
 
 tags
+stack.yaml.lock

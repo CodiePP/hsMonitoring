@@ -1,6 +1,15 @@
+# GHC 9.2.8
+resolver: lts-20.25
+compiler: ghc-9.2.8
+# from https://www.stackage.org/lts
+
+# GHC 8.10.7
+resolver: lts-19.19
+compiler: ghc-8.10.7
+
   # GHC 8.6.5
-resolver: lts-14.27
-compiler: ghc-8.6.5
+#resolver: lts-14.27
+#compiler: ghc-8.6.5
 
   # GHC 8.10.2
 #resolver: nightly-2020-08-26
@@ -9,10 +18,10 @@ compiler: ghc-8.6.5
 packages:
   - contra-tracer
   - tracer-transformers
-  - iohk-monitoring
+  - hs-monitoring
   - plugins/backend-aggregation
-  - plugins/backend-editor
-  - plugins/backend-ekg
+  # - plugins/backend-editor
+  # - plugins/backend-ekg
   - plugins/backend-graylog
   - plugins/backend-monitoring
   - plugins/backend-trace-acceptor
@@ -20,17 +29,24 @@ packages:
   - plugins/scribe-systemd
   - examples
 
-allow-newer: false
+allow-newer: true
 
 extra-deps:
-  # needed for GHC 8.10.2
-  #- async-timer-0.2.0.0
+  - async-timer-0.2.0.0
   - network-3.1.1.1
   - snap-core-1.0.4.1
   - snap-server-1.1.1.1
 
+  # - ekg-0.4.0.15
+  # - ekg-json-0.1.0.6
+
+  # - threepenny-gui-0.9.4.0
+  # - io-streams-haproxy-1.0.1.0
+  # - websockets-snap-0.10.3.1
+
   - time-units-1.0.0
-  - katip-0.8.4.0
+  # - katip-0.8.4.0
+  - katip-0.8.7.4
 
   - git: https://github.com/input-output-hk/ouroboros-network
     commit: a09f209bb6bbb1a1a9a5b31d671da0189001e175
@@ -38,18 +54,18 @@ extra-deps:
         - Win32-network
 
   - git: https://github.com/CodiePP/libsystemd-journal
-    commit: 49ad111e668e0d6e06e759a13d8de311bc91e149
+    commit: c5a495f0ee41fd2aea8c4d7db322b594f5b042a2
+    # commit: 49ad111e668e0d6e06e759a13d8de311bc91e149
     subdirs:
         - .
 
 nix:
   pure: false
-#  shell-file: nix/stack-shell.nix
+#  shell-file: stack.nix
   packages: [ zlib.dev, zlib.out
             , openssl.dev, openssl.out
             , libsodium.dev, libsodium.out
-            , haskell.compiler.ghc8102
+            , haskell.compiler.ghc8107
             , pkg-config
             , systemd.dev
             ]
-
