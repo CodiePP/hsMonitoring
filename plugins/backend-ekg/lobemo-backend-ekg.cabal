@@ -3,13 +3,13 @@ name:                lobemo-backend-ekg
 version:             0.1.0.2
 synopsis:            provides a backend implementation to EKG
 -- description:
-homepage:            https://github.com/input-output-hk/iohk-monitoring-framework
+homepage:            https://github.com/CodiePP/hsMonitoring
 -- bug-reports:
 license:             Apache-2.0
 license-files:       LICENSE, NOTICE
 author:              Alexander Diemand
-maintainer:          operations@iohk.io
-copyright:           2019 IOHK
+maintainer:          codieplusplus@apax.net
+copyright:           2019-23 IOHK, 2023 Alexander Diemand
 category:            Benchmarking
 build-type:          Simple
 extra-source-files:  README.md
@@ -25,7 +25,7 @@ library
                        bytestring,
                        ekg,
                        ekg-core,
-                       iohk-monitoring,
+                       hs-monitoring,
                        safe-exceptions,
                        snap-core,
                        snap-server,

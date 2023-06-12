@@ -1,12 +1,12 @@
-name:                 iohk-monitoring
+name:                 hs-monitoring
 version:              0.1.11.1
 synopsis:             logging, benchmarking and monitoring framework
 -- description:
 license:              Apache-2.0
 license-files:        LICENSE, NOTICE
 author:               Alexander Diemand, Andreas Triantafyllos
-maintainer:           operations@iohk.io
-copyright:            2018 IOHK
+maintainer:           codieplusplus@apax.net
+copyright:            2018-23 IOHK, 2023 Alexander Diemand
 category:             Benchmarking
 build-type:           Simple
 extra-source-files:   README.md
@@ -27,8 +27,7 @@ flag performance-test-queue
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Paths_iohk_monitoring
-
+  exposed-modules:     
                        Cardano.BM.Configuration
                        Cardano.BM.Configuration.Model
                        Cardano.BM.Configuration.Static
@@ -69,6 +68,8 @@ library
                        Cardano.BM.Trace
                        Cardano.BM.Tracer
 
+                       -- Paths_iohk_monitoring
+
                        -- shamelessly stolen from ouroboros-network-framework
                        Cardano.BM.IOManager
                        Cardano.BM.Snocket
@@ -105,10 +106,10 @@ library
                        bytestring,
                        clock,
                        containers,
-                       iog-contra-tracer,
+                       contra-tracer,
                        contravariant,
                        directory,
-                       ekg,
+                       --ekg,
                        filepath,
                        katip,
                        libyaml,
@@ -164,8 +165,8 @@ test-suite tests
   default-language:    Haskell2010
   default-extensions:  OverloadedStrings
   build-depends:       base,
-                       iog-contra-tracer,
-                       iohk-monitoring,
+                       contra-tracer,
+                       hs-monitoring,
                        aeson >= 1.4.2,
                        array,
                        async,

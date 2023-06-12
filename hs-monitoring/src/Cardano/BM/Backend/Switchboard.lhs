@@ -15,8 +15,8 @@ module Cardano.BM.Backend.Switchboard
     (
       Switchboard(..)
     , SwitchboardInternal (..)
-    , setSbEKGServer
-    , getSbEKGServer
+    --, setSbEKGServer
+    --, getSbEKGServer
     , mainTraceConditionally
     , readLogBuffer
     , effectuate
@@ -47,7 +47,7 @@ import qualified Data.Text.IO as TIO
 import           GHC.IO.Exception (BlockedIndefinitelyOnSTM)
 import qualified Katip as K
 import           System.IO (stderr)
-import           System.Remote.Monitoring (Server)
+--import           System.Remote.Monitoring (Server)
 
 import           Cardano.BM.Configuration (Configuration)
 import qualified Cardano.BM.Configuration as Config
@@ -85,9 +85,10 @@ data SwitchboardInternal a = SwitchboardInternal
     , sbLogBE     :: !(Cardano.BM.Backend.Log.Log a)
     , sbBackends  :: NamedBackends a
     , sbRunning   :: !SwitchboardStatus
-    , sbEKGServer :: Maybe Server
+    --, sbEKGServer :: Maybe Server
     }
 
+{-
 setSbEKGServer :: Maybe Server -> Switchboard a -> IO ()
 setSbEKGServer condSrv (Switchboard sbv) =
     modifyMVar_ sbv (\sb -> pure $ sb {sbEKGServer = condSrv})
@@ -96,6 +97,7 @@ getSbEKGServer :: Switchboard a -> IO (Maybe Server)
 getSbEKGServer (Switchboard sbv) = do
     sbi <- readMVar sbv
     pure (sbEKGServer sbi)
+-}
 
 type NamedBackends a = [(BackendKind, Backend a)]
 
@@ -273,7 +275,7 @@ realizeSwitchboard cfg = do
         , sbLogBE = katipBE
         , sbBackends = bs
         , sbRunning = SwitchboardRunning
-        , sbEKGServer = Nothing
+        --, sbEKGServer = Nothing
         }
     return sb
 

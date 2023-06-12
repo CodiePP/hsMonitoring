@@ -35,7 +35,7 @@ import           Data.Maybe (fromMaybe)
 import           Data.String (fromString)
 import           Data.Text (Text, pack, stripPrefix)
 import qualified Data.Text.IO as TIO
-import           Data.Version (showVersion)
+--import           Data.Version (showVersion)
 
 import           System.IO (stderr)
 import qualified System.Metrics.Gauge as Gauge
@@ -43,7 +43,7 @@ import qualified System.Metrics.Label as Label
 import           System.Remote.Monitoring (Server, forkServer,
                      getGauge, getLabel, serverThreadId)
 
-import           Paths_iohk_monitoring (version)
+--import           Paths_iohk_monitoring (version)
 
 import           Cardano.BM.Backend.ProcessQueue (processQueue)
 import           Cardano.BM.Backend.Prometheus (spawnPrometheus)
@@ -233,8 +233,8 @@ instance (ToJSON a, FromJSON a) => IsBackend EKGView a where
                  -- This unfortunate delay is to catch the async exception.
                  <* threadDelay 300000)
             `catch` mkHandler EKGServerStartupError
-        ekghdl <- getLabel "iohk-monitoring version" ehdl
-        Label.set ekghdl $ pack (showVersion version)
+        -- ekghdl <- getLabel "hs-monitoring version" ehdl
+        -- Label.set ekghdl $ pack (showVersion version)
         let ekgtrace = ekgTrace ekgview config
 #ifdef PERFORMANCE_TEST_QUEUE
         let qSize = 1000000

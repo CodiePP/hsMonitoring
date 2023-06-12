@@ -47,7 +47,7 @@ import           System.Random
 
 import           Cardano.BM.Backend.Aggregation
 --import           Cardano.BM.Backend.Editor
-import           Cardano.BM.Backend.EKGView
+--import           Cardano.BM.Backend.EKGView
 import           Cardano.BM.Backend.Monitoring
 import           Cardano.BM.Backend.Switchboard (Switchboard, readLogBuffer)
 import           Cardano.BM.Backend.TraceForwarder
@@ -511,8 +511,8 @@ main = do
     -- load plugins
 {-    Cardano.BM.Backend.Editor.plugin c tr sb
       >>= loadPlugin sb -}
-    Cardano.BM.Backend.EKGView.plugin c tr sb
-      >>= loadPlugin sb
+{-    Cardano.BM.Backend.EKGView.plugin c tr sb
+      >>= loadPlugin sb -}
     forwardTo <- CM.getForwardTo c
     when (isJust forwardTo) $
       Cardano.BM.Backend.TraceForwarder.plugin c tr sb "forwarderMinSeverity" (return [])

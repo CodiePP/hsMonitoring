@@ -118,7 +118,7 @@ instance (ToJSON a, FromJSON a) => IsBackend Editor a where
                 Threepenny.startGUI Threepenny.defaultConfig
                                    { Threepenny.jsPort       = Just port
                                    , Threepenny.jsAddr       = Just "127.0.0.1"
-                                   , Threepenny.jsStatic     = Just "iohk-monitoring/static"
+                                   , Threepenny.jsStatic     = Just "hs-monitoring/static"
                                    , Threepenny.jsCustomHTML = Just "configuration-editor.html"
                                    , Threepenny.jsUseSSL     =
                                        Just $ ConfigSSL
@@ -299,7 +299,7 @@ preprareCurrent editor config window inputKey inputValue outputMsg currentCmd = 
     exportConfiguration :: UI ()
     exportConfiguration = do
       currentDir <- Threepenny.liftIO getCurrentDirectory
-      let dir = currentDir </> "iohk-monitoring/static/conf"
+      let dir = currentDir </> "hs-monitoring/static/conf"
       Threepenny.liftIO $ createDirectoryIfMissing True dir
       tsnow <- formatTime defaultTimeLocale tsformat <$> Threepenny.liftIO getCurrentTime
       let filename = "config.yaml" ++ "-" ++ tsnow
