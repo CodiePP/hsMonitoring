@@ -23,7 +23,6 @@ import           Data.Text (Text)
 \subsubsection{BackendKind}\label{code:BackendKind}\index{BackendKind}
 \label{code:AggregationBK}\index{BackendKind!AggregationBK}
 \label{code:EditorBK}\index{BackendKind!EditorBK}
-\label{code:EKGViewBK}\index{BackendKind!EKGViewBK}
 \label{code:GraylogBK}\index{BackendKind!GraylogBK}
 \label{code:KatipBK}\index{BackendKind!KatipBK}
 \label{code:LogBufferBK}\index{BackendKind!LogBufferBK}
@@ -38,7 +37,6 @@ This identifies the backends that can be attached to the |Switchboard|.
 data BackendKind =
       AggregationBK
     | EditorBK
-    | EKGViewBK
     | GraylogBK
     | KatipBK
     | LogBufferBK
@@ -52,7 +50,6 @@ data BackendKind =
 instance ToJSON BackendKind where
     toJSON AggregationBK          = String "AggregationBK"
     toJSON EditorBK               = String "EditorBK"
-    toJSON EKGViewBK              = String "EKGViewBK"
     toJSON GraylogBK              = String "GraylogBK"
     toJSON KatipBK                = String "KatipBK"
     toJSON LogBufferBK            = String "LogBufferBK"
@@ -80,7 +77,6 @@ instance FromJSON BackendKind where
                     (\case
                         "AggregationBK"    -> pure AggregationBK
                         "EditorBK"         -> pure EditorBK
-                        "EKGViewBK"        -> pure EKGViewBK
                         "GraylogBK"        -> pure GraylogBK
                         "KatipBK"          -> pure KatipBK
                         "LogBufferBK"      -> pure LogBufferBK

@@ -21,9 +21,9 @@ import           Cardano.BM.Data.Configuration
 import           Cardano.BM.Configuration.Model (Configuration (..),
                      ConfigurationInternal (..), getScribes, getCachedScribes,
                      getDefaultBackends, getAggregatedKind, getGUIport,
-                     getEKGBindAddr, empty, setDefaultScribes, setScribes, setup,
+                     empty, setDefaultScribes, setScribes, setup,
                      setDefaultAggregatedKind, setAggregatedKind, setGUIport,
-                     setEKGBindAddr, exportConfiguration)
+                     exportConfiguration)
 import           Cardano.BM.Configuration.Static (defaultConfigStdout)
 import qualified Cardano.BM.Data.Aggregated as Agg
 import           Cardano.BM.Data.AggregatedKind
@@ -99,12 +99,10 @@ unitConfigurationStaticRepresentation =
                                    , scRotation = Nothing }
                 ]
             , defaultScribes = [(StdoutSK, "stdout")]
-            , setupBackends = [ EKGViewBK, KatipBK ]
+            , setupBackends = [ KatipBK ]
             , defaultBackends = [ KatipBK ]
             , hasGUI = Just 12789
             , hasGraylog = Just 12788
-            , hasEKG = Just $ Endpoint ("localhost", 18321)
-            , hasPrometheus = Just ("localhost", 12799)
             , traceForwardTo = Just (RemotePipe "to")
             , forwardDelay = Just 1000
             , traceAcceptAt = Just [RemoteAddrNamed "a" (RemotePipe "at")]
@@ -141,12 +139,6 @@ unitConfigurationStaticRepresentation =
             , "defaultScribes:"
             , "- - StdoutSK"
             , "  - stdout"
-            , "hasEKG:"
-            , "- localhost"
-            , "- 18321"
-            , "hasPrometheus:"
-            , "- localhost"
-            , "- 12799"
             , "setupScribes:"
             , "- scName: stdout"
             , "  scMaxSev: Emergency"
@@ -156,7 +148,6 @@ unitConfigurationStaticRepresentation =
             , "  scKind: StdoutSK"
             , "  scMinSev: Debug"
             , "setupBackends:"
-            , "- EKGViewBK"
             , "- KatipBK"
             , ""
             ]
@@ -201,7 +192,6 @@ unitConfigurationParsedRepresentation = do
             , "      - AlterSeverity \"chain.creation\" Debug"
             , "  mapBackends:"
             , "    iohk.interesting.value:"
-            , "    - EKGViewBK"
             , "    - AggregationBK"
             , "    iohk.user.defined:"
             , "    - kind: UserDefinedBK"
@@ -230,10 +220,6 @@ unitConfigurationParsedRepresentation = do
             , "defaultScribes:"
             , "- - StdoutSK"
             , "  - stdout"
-            , "hasEKG:"
-            , "- 127.0.0.1"
-            , "- 12789"
-            , "hasPrometheus: null"
             , "setupScribes:"
             , "- scName: testlog"
             , "  scMaxSev: Emergency"
@@ -254,7 +240,6 @@ unitConfigurationParsedRepresentation = do
             , "  scMinSev: Debug"
             , "setupBackends:"
             , "- AggregationBK"
-            , "- EKGViewBK"
             , "- KatipBK"
             , ""
             ]
@@ -326,8 +311,7 @@ unitConfigurationParsed = do
                                                                     ,String "KatipBK"
                                                                    ])
                                           ,("iohk.interesting.value",
-                                                Array $ V.fromList [String "EKGViewBK"
-                                                                   ,String "AggregationBK"
+                                                Array $ V.fromList [String "AggregationBK"
                                                                    ])])
             ]
         , cgMapBackend        = HM.fromList [ ("iohk.user.defined"
@@ -336,14 +320,12 @@ unitConfigurationParsed = do
                                                 ]
                                               )
                                             , ("iohk.interesting.value"
-                                              , [ EKGViewBK
-                                                , AggregationBK
+                                              , [ AggregationBK
                                                 ]
                                               )
                                             ]
         , cgDefBackendKs      = [ KatipBK ]
         , cgSetupBackends     = [ AggregationBK
-                                , EKGViewBK
                                 , KatipBK
                                 ]
         , cgMapScribe         = HM.fromList [ ("iohk.interesting.value",
@@ -399,9 +381,7 @@ unitConfigurationParsed = do
                                                 )
                                               )
                                             ]
-        , cgBindAddrEKG       = Just $ Endpoint ("127.0.0.1", 12789)
         , cgPortGraylog       = 12788
-        , cgBindAddrPrometheus = Nothing
         , cgPortGUI           = 0
         , cgForwardTo         = Just (RemotePipe "to")
         , cgForwardDelay      = Just 1000
@@ -449,9 +429,7 @@ unitConfigurationExportStdout = do
     cgMapAggregatedKind  cfgInternal' @?= cgMapAggregatedKind  cfgInternal
     cgDefAggregatedKind  cfgInternal' @?= cgDefAggregatedKind  cfgInternal
     cgMonitors           cfgInternal' @?= cgMonitors           cfgInternal
-    cgBindAddrEKG        cfgInternal' @?= cgBindAddrEKG        cfgInternal
     cgPortGraylog        cfgInternal' @?= cgPortGraylog        cfgInternal
-    cgBindAddrPrometheus cfgInternal' @?= cgBindAddrPrometheus cfgInternal
     cgPortGUI            cfgInternal' @?= cgPortGUI            cfgInternal
     cfgInternal' @?= cfgInternal
 
@@ -502,9 +480,6 @@ unitConfigurationOps = do
     setAggregatedKind configuration "name1" $ Just StatsAK
     name1AggregatedKind <- getAggregatedKind configuration "name1"
 
-    setEKGBindAddr configuration (Just $ Endpoint ("localhost", 11223))
-    ekgBindAddr <- getEKGBindAddr configuration
-
     setGUIport configuration 1080
     guiPort <- getGUIport configuration
 
@@ -516,9 +491,6 @@ unitConfigurationOps = do
 
     assertBool "Specific name aggregated kind" $
         name1AggregatedKind == StatsAK
-
-    assertBool "Set EKG host/port" $
-        ekgBindAddr == (Just $ Endpoint ("localhost", 11223))
 
     assertBool "Set GUI port" $
         guiPort == 1080

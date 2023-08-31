@@ -47,7 +47,6 @@ import           System.Random
 
 import           Cardano.BM.Backend.Aggregation
 --import           Cardano.BM.Backend.Editor
---import           Cardano.BM.Backend.EKGView
 import           Cardano.BM.Backend.Monitoring
 import           Cardano.BM.Backend.Switchboard (Switchboard, readLogBuffer)
 import           Cardano.BM.Backend.TraceForwarder
@@ -60,7 +59,7 @@ import           Cardano.BM.Counters (readCounters)
 import           Cardano.BM.Data.Aggregated (Measurable (..))
 import           Cardano.BM.Data.AggregatedKind
 import           Cardano.BM.Data.BackendKind
-import           Cardano.BM.Data.Configuration (Endpoint(..), RemoteAddr(..))
+import           Cardano.BM.Data.Configuration (RemoteAddr(..))
 import           Cardano.BM.Data.Counter
 import           Cardano.BM.Data.LogItem
 import           Cardano.BM.Data.MonitoringEval
@@ -85,9 +84,6 @@ import           Cardano.BM.Trace
 \end{code}
 
 \subsubsection{Define configuration}
-Selected values can be viewed in EKG on \url{http://localhost:12790}.
-And, the \emph{Prometheus} interface is accessible at \url{http://localhost:12800/metrics}
-\\
 The configuration editor listens on \url{http://localhost:13790}.
 \begin{code}
 prepare_configuration :: IO CM.Configuration
@@ -211,23 +207,10 @@ prepare_configuration = do
     CM.setSubTrace c "#messagecounters.switchboard" $ Just NoTrace
     CM.setSubTrace c "#messagecounters.katip"       $ Just NoTrace
     CM.setSubTrace c "#messagecounters.aggregation" $ Just NoTrace
-    CM.setSubTrace c "#messagecounters.ekgview"     $ Just Neutral
     CM.setBackends c "#messagecounters.switchboard" $ Just [EditorBK, KatipBK]
     CM.setSubTrace c "#messagecounters.monitoring"  $ Just NoTrace
 
     CM.setSubTrace c "complex.random" (Just $ TeeTrace "ewma")
-    CM.setSubTrace c "#ekgview"
-      (Just $ FilterTrace [ (Drop (StartsWith "#ekgview.complex.#aggregation.complex.random"),
-                             Unhide [EndsWith ".count",
-                                     EndsWith ".avg",
-                                     EndsWith ".mean"]),
-                            (Drop (StartsWith "#ekgview.complex.#aggregation.complex.observeIO"),
-                             Unhide [Contains "diff.RTS.cpuNs.timed."]),
-                            (Drop (StartsWith "#ekgview.complex.#aggregation.complex.observeSTM"),
-                             Unhide [Contains "diff.RTS.gcNum.timed."]),
-                            (Drop (StartsWith "#ekgview.complex.#aggregation.complex.message"),
-                             Unhide [Contains ".timed.m"])
-                          ])
 #ifdef ENABLE_OBSERVABLES
     CM.setSubTrace c "complex.observeIO" (Just $ ObservableTraceSelf [GhcRtsStats,MemoryStats])
     forM_ [(1::Int)..10] $ \x ->
@@ -238,7 +221,7 @@ prepare_configuration = do
 #endif
 
     CM.setBackends c "complex.message" (Just [AggregationBK, KatipBK, TraceForwarderBK])
-    CM.setBackends c "complex.random" (Just [KatipBK, EKGViewBK])
+    CM.setBackends c "complex.random" (Just [KatipBK])
     CM.setBackends c "complex.random.ewma" (Just [AggregationBK])
     CM.setBackends c "complex.observeIO" (Just [AggregationBK, MonitoringBK])
 
@@ -254,15 +237,12 @@ prepare_configuration = do
     CM.setAggregatedKind c "complex.random.ewma.rr" (Just (EwmaAK 0.22))
 
     CM.setBackends c "complex.#aggregation.complex.random" (Just [EditorBK])
-    CM.setBackends c "complex.#aggregation.complex.random.ewma" (Just [EKGViewBK, EditorBK])
-    CM.setBackends c "complex.#aggregation.complex.message" (Just [EKGViewBK, MonitoringBK])
+    CM.setBackends c "complex.#aggregation.complex.random.ewma" (Just [EditorBK])
+    CM.setBackends c "complex.#aggregation.complex.message" (Just [MonitoringBK])
     CM.setBackends c "complex.#aggregation.complex.monitoring" (Just [MonitoringBK])
-    CM.setBackends c "complex.#aggregation.complex.observeIO" (Just [EKGViewBK])
 
     CM.setScribes c "complex.counters" (Just ["StdoutSK::stdout","FileSK::logs/out.json"])
 
-    CM.setEKGBindAddr c $ Just (Endpoint ("localhost", 12790))
-    CM.setPrometheusBindAddr c $ Just ("localhost", 12800)
     CM.setGUIport c 13790
 \end{code}
 
@@ -275,7 +255,6 @@ output could also be forwarded using a pipe:
 \begin{code}
     CM.setForwardTo c (Just $ RemoteSocket "127.0.0.1" "42999")
     CM.setTextOption c "forwarderMinSeverity" "Warning"  -- sets min severity filter in forwarder
-    CM.setTextOption c "prometheusOutput" "json"  -- Prometheus' output in JSON-format
 
     CM.setForwardDelay c (Just 1000)
 
@@ -511,8 +490,6 @@ main = do
     -- load plugins
 {-    Cardano.BM.Backend.Editor.plugin c tr sb
       >>= loadPlugin sb -}
-{-    Cardano.BM.Backend.EKGView.plugin c tr sb
-      >>= loadPlugin sb -}
     forwardTo <- CM.getForwardTo c
     when (isJust forwardTo) $
       Cardano.BM.Backend.TraceForwarder.plugin c tr sb "forwarderMinSeverity" (return [])
@@ -527,8 +504,6 @@ main = do
       >>= loadPlugin sb
 #endif
     logNotice tr "starting program; hit CTRL-C to terminate"
--- user can watch the progress only if EKG is enabled.
-    logInfo tr "watch its progress on http://localhost:12790"
 
 #ifdef RUN_ProcBufferDump
     procDump <- dumpBuffer sb tr
@@ -536,7 +511,7 @@ main = do
 
 #ifdef RUN_ProcRandom
     {- start thread sending unbounded sequence of random numbers
-       to a trace which aggregates them into a statistics (sent to EKG) -}
+       to a trace which aggregates them into a statistics -}
     procRandom <- randomThr tr
 #endif
 #ifdef RUN_ProcMonitoring
