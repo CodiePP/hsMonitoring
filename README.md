@@ -5,9 +5,9 @@ This project provides logging and benchmarking for the purpose of system and pro
 
 ## build and test
 
-`cabal new-build all`
+`cabal build all`
 
-`cabal new-test all`
+`cabal test all`
 
 or using _stack_:
 
