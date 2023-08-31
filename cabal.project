@@ -5,7 +5,6 @@ packages:
   hs-monitoring
   plugins/backend-aggregation
   --plugins/backend-editor
-  --plugins/backend-ekg
   plugins/backend-graylog
   plugins/backend-monitoring
   plugins/backend-trace-acceptor
@@ -33,10 +32,6 @@ constraints:
 
 allow-newer:
   --   libsystemd-journal:base
-  --   ekg:*
-  -- , ekg-core:base
-  -- , ekg-json:aeson
-  -- , ekg-json:base
   -- , threepenny-gui:base
   -- , threepenny-gui:template-haskell
   , websockets-snap:bytestring

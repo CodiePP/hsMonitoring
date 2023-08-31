@@ -28,9 +28,7 @@ module Cardano.BM.Configuration
     , CM.updateOption
     , CM.findSubTrace
     , CM.setSubTrace
-    , CM.getEKGBindAddr
     , CM.getGraylogPort
-    , CM.getPrometheusBindAddr
     , CM.getGUIport
     , CM.getMonitors
     , getTextOptionOrDefault

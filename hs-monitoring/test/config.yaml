@@ -12,7 +12,6 @@ rotation:
 # these backends are initialized:
 setupBackends:
   - AggregationBK
-  - EKGViewBK
   - KatipBK
 
 # if not indicated otherwise, then messages are passed to these backends:
@@ -22,14 +21,8 @@ defaultBackends:
 # if wanted, the GUI is listening on this port:
 # hasGUI: 18321
 
-# if wanted, the EKG interface is listening on this host/port (host is "127.0.0.1" if undefined):
-hasEKG: 12789
-
 # if wanted, we send log items to Graylog on this port:
 hasGraylog: 12788
-
-# if wanted, the Prometheus interface is using this port:
-# hasPrometheus: 12799
 
 # here we set up outputs of logging in 'katip':
 setupScribes:
@@ -79,7 +72,6 @@ options:
       subtrace: NoTrace
   mapBackends:
     iohk.interesting.value:
-      - EKGViewBK
       - AggregationBK
     iohk.user.defined:
       - kind: UserDefinedBK

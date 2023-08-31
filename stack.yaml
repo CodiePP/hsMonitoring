@@ -21,7 +21,6 @@ packages:
   - hs-monitoring
   - plugins/backend-aggregation
   # - plugins/backend-editor
-  # - plugins/backend-ekg
   - plugins/backend-graylog
   - plugins/backend-monitoring
   - plugins/backend-trace-acceptor
@@ -36,9 +35,6 @@ extra-deps:
   - network-3.1.1.1
   - snap-core-1.0.4.1
   - snap-server-1.1.1.1
-
-  # - ekg-0.4.0.15
-  # - ekg-json-0.1.0.6
 
   # - threepenny-gui-0.9.4.0
   # - io-streams-haproxy-1.0.1.0

@@ -18,7 +18,7 @@ module Cardano.BM.Data.Configuration
     Representation (..)
   , Port
   , HostPort
-  , Endpoint (..)
+  {- , Endpoint (..) -}
   , RemoteAddr (..)
   , RemoteAddrNamed (..)
   , parseRepresentation
@@ -53,14 +53,14 @@ type HostPort = (String, Port)
 newtype Endpoint = Endpoint HostPort
   deriving (Eq, Generic, Show, ToJSON)
 
--- It's possible to specify host and port for EKG or port only
+-- It's possible to specify host and port or port only
 -- (to keep backward compatibility with existing configurations).
 -- For example:
---   hasEKG:
+--   hasService:
 --     - "127.0.0.1"
 --     - 12789
 -- or
---   hasEKG: 12789
+--   hasService: 12789
 -- That's why we provide a custom FromJSON-instance for Endpoint.
 instance FromJSON Endpoint where
   parseJSON o@(Array a) =
@@ -98,9 +98,7 @@ data Representation = Representation
     , defaultScribes  :: [(ScribeKind,Text)]
     , setupBackends   :: [BackendKind]
     , defaultBackends :: [BackendKind]
-    , hasEKG          :: Maybe Endpoint
     , hasGraylog      :: Maybe Port
-    , hasPrometheus   :: Maybe HostPort
     , hasGUI          :: Maybe Port
     , traceForwardTo  :: Maybe RemoteAddr
     , forwardDelay    :: Maybe Word
@@ -145,11 +143,9 @@ after parsing the configuration representation we implicitly correct it.
 \begin{code}
 implicit_fill_representation :: Representation -> Representation
 implicit_fill_representation =
-    remove_ekgview_if_not_defined .
     filter_duplicates_from_backends .
     filter_duplicates_from_scribes .
     union_setup_and_usage_backends .
-    add_ekgview_if_port_defined .
     add_katip_if_any_scribes
   where
     filter_duplicates_from_backends r =
@@ -158,16 +154,6 @@ implicit_fill_representation =
         r {setupScribes = mkUniq $ setupScribes r}
     union_setup_and_usage_backends r =
         r {setupBackends = setupBackends r <> defaultBackends r}
-    remove_ekgview_if_not_defined r =
-        case hasEKG r of
-        Nothing -> r { defaultBackends = filter (\bk -> bk /= EKGViewBK) (defaultBackends r)
-                     , setupBackends = filter (\bk -> bk /= EKGViewBK) (setupBackends r)
-                     }
-        Just _  -> r
-    add_ekgview_if_port_defined r =
-        case hasEKG r of
-        Nothing -> r
-        Just _  -> r {setupBackends = setupBackends r <> [EKGViewBK]}
     add_katip_if_any_scribes r =
         if (any not [null $ setupScribes r, null $ defaultScribes r])
         then r {setupBackends = setupBackends r <> [KatipBK]}

@@ -109,7 +109,6 @@ library
                        contra-tracer,
                        contravariant,
                        directory,
-                       --ekg,
                        filepath,
                        katip,
                        libyaml,

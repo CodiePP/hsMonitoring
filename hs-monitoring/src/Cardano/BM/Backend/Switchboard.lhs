@@ -15,8 +15,6 @@ module Cardano.BM.Backend.Switchboard
     (
       Switchboard(..)
     , SwitchboardInternal (..)
-    --, setSbEKGServer
-    --, getSbEKGServer
     , mainTraceConditionally
     , readLogBuffer
     , effectuate
@@ -85,19 +83,7 @@ data SwitchboardInternal a = SwitchboardInternal
     , sbLogBE     :: !(Cardano.BM.Backend.Log.Log a)
     , sbBackends  :: NamedBackends a
     , sbRunning   :: !SwitchboardStatus
-    --, sbEKGServer :: Maybe Server
     }
-
-{-
-setSbEKGServer :: Maybe Server -> Switchboard a -> IO ()
-setSbEKGServer condSrv (Switchboard sbv) =
-    modifyMVar_ sbv (\sb -> pure $ sb {sbEKGServer = condSrv})
-
-getSbEKGServer :: Switchboard a -> IO (Maybe Server)
-getSbEKGServer (Switchboard sbv) = do
-    sbi <- readMVar sbv
-    pure (sbEKGServer sbi)
--}
 
 type NamedBackends a = [(BackendKind, Backend a)]
 
@@ -275,7 +261,6 @@ realizeSwitchboard cfg = do
         , sbLogBE = katipBE
         , sbBackends = bs
         , sbRunning = SwitchboardRunning
-        --, sbEKGServer = Nothing
         }
     return sb
 
@@ -388,7 +373,6 @@ setupBackend' MonitoringBK _ _ = return Nothing
 setupBackend' AggregationBK _ _ = return Nothing
 setupBackend' EditorBK _ _ = return Nothing
 setupBackend' GraylogBK _ _ = return Nothing
-setupBackend' EKGViewBK _ _ = return Nothing
 setupBackend' KatipBK _ _ = return Nothing
 setupBackend' LogBufferBK _ _ = return Nothing
 setupBackend' TraceAcceptorBK _ _ = return Nothing
