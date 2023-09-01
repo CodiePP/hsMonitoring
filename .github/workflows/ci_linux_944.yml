@@ -33,6 +33,12 @@ jobs:
           ${{ runner.os }}-build-
           ${{ runner.os }}-
 
+    - name: "Linux: Install platform dependencies"
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install libsystemd0 libsystemd-dev
+
     - name: Install dependencies
       run: |
         cabal update
