@@ -4,7 +4,6 @@ packages:
   tracer-transformers
   hs-monitoring
   plugins/backend-aggregation
-  --plugins/backend-editor
   plugins/backend-graylog
   plugins/backend-monitoring
   plugins/backend-trace-acceptor
@@ -13,6 +12,9 @@ packages:
   examples
 
 package hs-monitoring
+  tests: True
+
+package backend-monitoring
   tests: True
 
 -- extra stuff
@@ -30,11 +32,8 @@ constraints:
   hedgehog >= 1.0,
   bimap >= 0.4.0,
 
-allow-newer:
-  --   libsystemd-journal:base
-  -- , threepenny-gui:base
-  -- , threepenny-gui:template-haskell
-  , websockets-snap:bytestring
+-- allow-newer:
+  --
 
 package comonad
   flags: -test-doctests

@@ -371,7 +371,6 @@ setupBackend' SwitchboardBK _ _ = fail "cannot instantiate a further Switchboard
 setupBackend' (UserDefinedBK _) _ _ = fail "cannot instantiate an user-defined backend"
 setupBackend' MonitoringBK _ _ = return Nothing
 setupBackend' AggregationBK _ _ = return Nothing
-setupBackend' EditorBK _ _ = return Nothing
 setupBackend' GraylogBK _ _ = return Nothing
 setupBackend' KatipBK _ _ = return Nothing
 setupBackend' LogBufferBK _ _ = return Nothing
