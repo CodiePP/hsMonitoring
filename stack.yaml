@@ -20,7 +20,6 @@ packages:
   - tracer-transformers
   - hs-monitoring
   - plugins/backend-aggregation
-  # - plugins/backend-editor
   - plugins/backend-graylog
   - plugins/backend-monitoring
   - plugins/backend-trace-acceptor
@@ -33,12 +32,6 @@ allow-newer: true
 extra-deps:
   - async-timer-0.2.0.0
   - network-3.1.1.1
-  - snap-core-1.0.4.1
-  - snap-server-1.1.1.1
-
-  # - threepenny-gui-0.9.4.0
-  # - io-streams-haproxy-1.0.1.0
-  # - websockets-snap-0.10.3.1
 
   - time-units-1.0.0
   - katip-0.8.7.4

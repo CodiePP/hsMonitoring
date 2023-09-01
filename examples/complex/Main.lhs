@@ -46,7 +46,6 @@ import           Network.Download (openURI)
 import           System.Random
 
 import           Cardano.BM.Backend.Aggregation
---import           Cardano.BM.Backend.Editor
 import           Cardano.BM.Backend.Monitoring
 import           Cardano.BM.Backend.Switchboard (Switchboard, readLogBuffer)
 import           Cardano.BM.Backend.TraceForwarder
@@ -84,7 +83,6 @@ import           Cardano.BM.Trace
 \end{code}
 
 \subsubsection{Define configuration}
-The configuration editor listens on \url{http://localhost:13790}.
 \begin{code}
 prepare_configuration :: IO CM.Configuration
 prepare_configuration = do
@@ -207,7 +205,7 @@ prepare_configuration = do
     CM.setSubTrace c "#messagecounters.switchboard" $ Just NoTrace
     CM.setSubTrace c "#messagecounters.katip"       $ Just NoTrace
     CM.setSubTrace c "#messagecounters.aggregation" $ Just NoTrace
-    CM.setBackends c "#messagecounters.switchboard" $ Just [EditorBK, KatipBK]
+    CM.setBackends c "#messagecounters.switchboard" $ Just [KatipBK]
     CM.setSubTrace c "#messagecounters.monitoring"  $ Just NoTrace
 
     CM.setSubTrace c "complex.random" (Just $ TeeTrace "ewma")
@@ -236,8 +234,6 @@ prepare_configuration = do
     CM.setAggregatedKind c "complex.random.rr" (Just StatsAK)
     CM.setAggregatedKind c "complex.random.ewma.rr" (Just (EwmaAK 0.22))
 
-    CM.setBackends c "complex.#aggregation.complex.random" (Just [EditorBK])
-    CM.setBackends c "complex.#aggregation.complex.random.ewma" (Just [EditorBK])
     CM.setBackends c "complex.#aggregation.complex.message" (Just [MonitoringBK])
     CM.setBackends c "complex.#aggregation.complex.monitoring" (Just [MonitoringBK])
 
