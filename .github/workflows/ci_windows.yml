@@ -1,4 +1,4 @@
-name: Haskell CI (macOS)
+name: Haskell CI (Windows)
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
 jobs:
   build:
 
-    runs-on: macos-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v3
@@ -32,6 +32,20 @@ jobs:
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-
+
+    - name: "Windows: Install platform dependencies"
+      if: runner.os == 'Windows'
+      run: |
+         ghcup run -- pacman --noconfirm -S `
+            mingw-w64-x86_64-pkg-config `
+            mingw-w64-x86_64-libsodium `
+            mingw-w64-x86_64-openssl `
+            base-devel `
+            autoconf-wrapper `
+            autoconf `
+            automake `
+            libtool `
+            make
 
     - name: Install dependencies
       run: cabal update
