@@ -1,4 +1,4 @@
-name: Haskell CI (Linux)
+name: Haskell CI (macOS)
 
 on:
   push:
