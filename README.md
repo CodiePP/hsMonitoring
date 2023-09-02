@@ -3,6 +3,12 @@
 This project provides logging and benchmarking for the purpose of system and process monitoring.
 
 
+## CI
+
+|   | Linux | macOS | Windows |
+|---|---|---|---|
+| GHC 9.4.5 | [![Haskell CI (Linux)](https://github.com/CodiePP/hsMonitoring/actions/workflows/ci_linux.yml/badge.svg)](https://github.com/CodiePP/hsMonitoring/actions/workflows/ci_linux.yml) | [![Haskell CI (macOS)](https://github.com/CodiePP/hsMonitoring/actions/workflows/ci_macos.yml/badge.svg)](https://github.com/CodiePP/hsMonitoring/actions/workflows/ci_macos.yml)  |  [![Haskell CI (Windows)](https://github.com/CodiePP/hsMonitoring/actions/workflows/ci_windows.yml/badge.svg)](https://github.com/CodiePP/hsMonitoring/actions/workflows/ci_windows.yml) |
+
 ## build and test
 
 `cabal build all`
